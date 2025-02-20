@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/Build/(.*)",
+      "source": "/docs/Build/(.*)",
       "headers": [
         {
           "key": "Content-Encoding",
