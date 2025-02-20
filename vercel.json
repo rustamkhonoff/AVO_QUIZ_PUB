@@ -6,13 +6,6 @@
         { "key": "Content-Encoding", "value": "gzip" },
         { "key": "Content-Type", "value": "application/octet-stream" }
       ]
-    },
-    {
-      "source": "/docs/StreamingAssets/*.gz",
-      "headers": [
-        { "key": "Content-Encoding", "value": "gzip" },
-        { "key": "Content-Type", "value": "application/octet-stream" }
-      ]
     }
   ]
 }
