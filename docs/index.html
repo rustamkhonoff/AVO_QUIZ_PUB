@@ -6,28 +6,6 @@
   <title>Unity WebGL Player | AVO_QUIZ</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
-  <script>
-    // Если Telegram.WebApp отсутствует, устанавливаем тестовые данные
-    if (!window.Telegram || !window.Telegram.WebApp) {
-      window.Telegram = {
-        WebApp: {
-          initDataUnsafe: {
-            user: {
-              id: 123456789,
-              first_name: "Test",
-              last_name: "User",
-              username: "testuser"
-            }
-          },
-          ready: function() {
-            console.log("Telegram WebApp simulation ready.");
-          }
-        }
-      };
-    } else {
-      Telegram.WebApp.ready();
-    }
-  </script>
 </head>
 <body>
 <div id="unity-container" class="unity-desktop">
@@ -110,19 +88,9 @@
         unityInstance.SetFullscreen(1);
       };
 
-      // Задержка для ожидания, пока Telegram обновит реальные данные (если запускается из Telegram)
-      setTimeout(function() {
-        if (window.Telegram && window.Telegram.WebApp &&
-                window.Telegram.WebApp.initDataUnsafe &&
-                window.Telegram.WebApp.initDataUnsafe.user) {
-          var userData = window.Telegram.WebApp.initDataUnsafe.user;
-          var userDataJson = JSON.stringify(userData);
-          console.log("Отправка данных пользователя в Unity:", userDataJson);
-          unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", userDataJson);
-        } else {
-          console.error("Реальные данные Telegram не найдены.");
-        }
-      }, 500);
+      // Отправляем тестовое сообщение "Привет" в Unity
+      console.log("Отправка тестового сообщения 'Привет' в Unity");
+      unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", "Привет");
     }).catch((message) => {
       alert(message);
     });
