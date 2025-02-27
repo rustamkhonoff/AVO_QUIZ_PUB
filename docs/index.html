@@ -6,27 +6,27 @@
   <title>Unity WebGL Player | AVO_QUIZ</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
-  <script>
-    // Если Telegram.WebApp доступен, вызываем ready (без симуляции тестовых данных)
-    if (window.Telegram && window.Telegram.WebApp && typeof Telegram.WebApp.ready === "function") {
-      Telegram.WebApp.ready();
-    }
 
-    // Функция безопасного JSON.stringify, избегающая циклических ссылок и функций
-    function safeStringify(obj) {
-      const seen = new WeakSet();
-      return JSON.stringify(obj, function(key, value) {
-        if (typeof value === "object" && value !== null) {
-          if (seen.has(value)) {
-            return;
-          }
-          seen.add(value);
-        }
-        if (typeof value === "function") {
-          return undefined;
-        }
-        return value;
-      }, 2);
+  <!-- Telegram Login Widget -->
+  <script async src="https://telegram.org/js/telegram-widget.js?7"
+          data-telegram-login="AvoCyberQuiz_bot"
+          data-size="large"
+          data-userpic="false"
+          data-request-access="write"
+          data-lang="ru"
+          data-callback="onTelegramAuth">
+  </script>
+
+  <script>
+    // Callback-функция, вызываемая при авторизации через Telegram
+    function onTelegramAuth(user) {
+      console.log("Пользователь авторизовался через Telegram:", user);
+      // Если Unity-инстанс уже создан, передаём данные в Unity
+      if (window.unityInstance) {
+        window.unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", JSON.stringify(user));
+      } else {
+        console.error("Unity instance не готов.");
+      }
     }
   </script>
 </head>
@@ -86,6 +86,7 @@
     showBanner: unityShowBanner,
   };
 
+  // Адаптация для мобильных устройств
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     var meta = document.createElement('meta');
     meta.name = 'viewport';
@@ -102,27 +103,16 @@
 
   var script = document.createElement("script");
   script.src = loaderUrl;
-  script.onload = () => {
-    createUnityInstance(canvas, config, (progress) => {
+  script.onload = function() {
+    createUnityInstance(canvas, config, function(progress) {
       progressBarFull.style.width = (100 * progress) + "%";
-    }).then((unityInstance) => {
+    }).then(function(instance) {
+      window.unityInstance = instance; // Глобальная переменная для доступа в onTelegramAuth
       loadingBar.style.display = "none";
-      fullscreenButton.onclick = () => {
-        unityInstance.SetFullscreen(1);
+      fullscreenButton.onclick = function() {
+        instance.SetFullscreen(1);
       };
-
-      // Задержка для того, чтобы Telegram обновил данные (если они приходят асинхронно)
-      setTimeout(function() {
-        if (window.Telegram) {
-          // Передаем все, что есть в window.Telegram
-          var tgDataJson = safeStringify(window.Telegram);
-          console.log("Отправка данных window.Telegram в Unity:", tgDataJson);
-          unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", tgDataJson);
-        } else {
-          console.error("Данные Telegram не найдены в window.");
-        }
-      }, 500);
-    }).catch((message) => {
+    }).catch(function(message) {
       alert(message);
     });
   };
