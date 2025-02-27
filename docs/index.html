@@ -7,8 +7,8 @@
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
   <script>
-    // Если API Telegram.WebApp отсутствует (например, при тестировании в браузере), создаём его с тестовыми данными.
-    if (!window.Telegram) {
+    // Если Telegram.WebApp отсутствует, устанавливаем тестовые данные
+    if (!window.Telegram || !window.Telegram.WebApp) {
       window.Telegram = {
         WebApp: {
           initDataUnsafe: {
@@ -24,9 +24,7 @@
           }
         }
       };
-    }
-    // Если API существует, вызываем ready для инициализации
-    else if (window.Telegram.WebApp && typeof Telegram.WebApp.ready === "function") {
+    } else {
       Telegram.WebApp.ready();
     }
   </script>
@@ -55,7 +53,6 @@
   var fullscreenButton = document.querySelector("#unity-fullscreen-button");
   var warningBanner = document.querySelector("#unity-warning");
 
-  // Функция для показа сообщений
   function unityShowBanner(msg, type) {
     function updateBannerVisibility() {
       warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -88,7 +85,6 @@
     showBanner: unityShowBanner,
   };
 
-  // Адаптация под мобильные устройства
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     var meta = document.createElement('meta');
     meta.name = 'viewport';
@@ -114,17 +110,19 @@
         unityInstance.SetFullscreen(1);
       };
 
-      // Если данные Telegram доступны, отправляем их в Unity
-      if (window.Telegram && window.Telegram.WebApp &&
-              window.Telegram.WebApp.initDataUnsafe &&
-              window.Telegram.WebApp.initDataUnsafe.user) {
-        var userData = window.Telegram.WebApp.initDataUnsafe.user;
-        var userDataJson = JSON.stringify(userData);
-        console.log("Отправка данных пользователя в Unity:", userDataJson);
-        unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", userDataJson);
-      } else {
-        console.error("Данные Telegram не найдены.");
-      }
+      // Задержка для ожидания, пока Telegram обновит реальные данные (если запускается из Telegram)
+      setTimeout(function() {
+        if (window.Telegram && window.Telegram.WebApp &&
+                window.Telegram.WebApp.initDataUnsafe &&
+                window.Telegram.WebApp.initDataUnsafe.user) {
+          var userData = window.Telegram.WebApp.initDataUnsafe.user;
+          var userDataJson = JSON.stringify(userData);
+          console.log("Отправка данных пользователя в Unity:", userDataJson);
+          unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", userDataJson);
+        } else {
+          console.error("Реальные данные Telegram не найдены.");
+        }
+      }, 500);
     }).catch((message) => {
       alert(message);
     });
