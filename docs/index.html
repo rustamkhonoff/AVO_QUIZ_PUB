@@ -6,6 +6,29 @@
   <title>Unity WebGL Player | AVO_QUIZ</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
+  <script>
+    // Если Telegram.WebApp доступен, вызываем ready (без симуляции тестовых данных)
+    if (window.Telegram && window.Telegram.WebApp && typeof Telegram.WebApp.ready === "function") {
+      Telegram.WebApp.ready();
+    }
+
+    // Функция безопасного JSON.stringify, избегающая циклических ссылок и функций
+    function safeStringify(obj) {
+      const seen = new WeakSet();
+      return JSON.stringify(obj, function(key, value) {
+        if (typeof value === "object" && value !== null) {
+          if (seen.has(value)) {
+            return;
+          }
+          seen.add(value);
+        }
+        if (typeof value === "function") {
+          return undefined;
+        }
+        return value;
+      }, 2);
+    }
+  </script>
 </head>
 <body>
 <div id="unity-container" class="unity-desktop">
@@ -88,9 +111,17 @@
         unityInstance.SetFullscreen(1);
       };
 
-      // Отправляем тестовое сообщение "Привет" в Unity
-      console.log("Отправка тестового сообщения 'Привет' в Unity");
-      unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", "Привет");
+      // Задержка для того, чтобы Telegram обновил данные (если они приходят асинхронно)
+      setTimeout(function() {
+        if (window.Telegram) {
+          // Передаем все, что есть в window.Telegram
+          var tgDataJson = safeStringify(window.Telegram);
+          console.log("Отправка данных window.Telegram в Unity:", tgDataJson);
+          unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", tgDataJson);
+        } else {
+          console.error("Данные Telegram не найдены в window.");
+        }
+      }, 500);
     }).catch((message) => {
       alert(message);
     });
