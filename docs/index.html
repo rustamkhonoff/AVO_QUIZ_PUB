@@ -78,33 +78,28 @@
             unityInstance.SetFullscreen(1);
           };
 
-          // Ожидаем 2 секунды перед отправкой данных в Unity
-          setTimeout(() => {
-            if (window.Telegram && window.Telegram.WebApp) {
-              let user = window.Telegram.WebApp.initDataUnsafe.user;
-              if (user) {
-                let userData = JSON.stringify({
-                  id: user.id,
-                  first_name: user.first_name,
-                  last_name: user.last_name,
-                  username: user.username
-                });
+          // Данные Telegram
+          if (window.Telegram && window.Telegram.WebApp) {
+            let user = window.Telegram.WebApp.initDataUnsafe.user;
+            if (user) {
+              let userData = JSON.stringify({
+                id: user.id,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                username: user.username
+              });
 
-                console.log("Отправка данных в Unity:", userData); // Лог в консоли для проверки
+              console.log("Отправка данных в Unity:", userData); // Лог для отладки
 
-                // Проверяем, загружена ли Unity, и отправляем данные
+              setTimeout(() => {
                 if (window.unityInstance) {
                   window.unityInstance.SendMessage("TelegramManager", "ReceiveUserData", userData);
                 } else {
                   console.error("Ошибка: Unity не загружен!");
                 }
-              } else {
-                console.warn("Данные пользователя Telegram не получены.");
-              }
-            } else {
-              console.warn("Telegram WebApp не доступен.");
+              }, 1500);
             }
-          }, 2000);
+          }
         }).catch((message) => {
           alert(message);
         });
