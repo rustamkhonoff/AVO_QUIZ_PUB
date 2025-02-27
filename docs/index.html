@@ -6,10 +6,26 @@
   <title>Unity WebGL Player | AVO_QUIZ</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
+  <script>
+    // Если игра запущена внутри Telegram, WebApp API должен быть доступен.
+    // Вызываем Telegram.WebApp.ready() для инициализации и сразу пытаемся получить данные пользователя.
+    var telegramUserData = null;
+    if (window.Telegram && window.Telegram.WebApp) {
+      Telegram.WebApp.ready();
+      if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+        telegramUserData = Telegram.WebApp.initDataUnsafe.user;
+        console.log("Telegram: получены данные пользователя:", telegramUserData);
+      } else {
+        console.error("Telegram: данные пользователя отсутствуют");
+      }
+    } else {
+      console.error("Telegram: API WebApp не доступен");
+    }
+  </script>
 </head>
 <body>
 <div id="unity-container" class="unity-desktop">
-  <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+  <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
   <div id="unity-loading-bar">
     <div id="unity-logo"></div>
     <div id="unity-progress-bar-empty">
@@ -31,7 +47,7 @@
   var fullscreenButton = document.querySelector("#unity-fullscreen-button");
   var warningBanner = document.querySelector("#unity-warning");
 
-  // Функция для отображения предупреждений и ошибок
+  // Функция для показа сообщений об ошибках/предупреждениях
   function unityShowBanner(msg, type) {
     function updateBannerVisibility() {
       warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
@@ -40,8 +56,8 @@
     div.innerHTML = msg;
     warningBanner.appendChild(div);
     if (type == 'error') div.style = 'background: red; padding: 10px;';
-    else {
-      if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+    else if (type == 'warning') {
+      div.style = 'background: yellow; padding: 10px;';
       setTimeout(function() {
         warningBanner.removeChild(div);
         updateBannerVisibility();
@@ -63,7 +79,7 @@
     showBanner: unityShowBanner,
   };
 
-  // Настройка для мобильных устройств
+  // Подгонка для мобильных устройств
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     var meta = document.createElement('meta');
     meta.name = 'viewport';
@@ -83,7 +99,7 @@
   script.src = loaderUrl;
   script.onload = () => {
     createUnityInstance(canvas, config, (progress) => {
-      progressBarFull.style.width = 100 * progress + "%";
+      progressBarFull.style.width = (100 * progress) + "%";
     }).then((instance) => {
       unityInstance = instance;
       loadingBar.style.display = "none";
@@ -91,15 +107,13 @@
         unityInstance.SetFullscreen(1);
       };
 
-      // Если игра запущена внутри Telegram, получаем данные пользователя
-      if (window.Telegram && window.Telegram.WebApp &&
-              window.Telegram.WebApp.initDataUnsafe &&
-              window.Telegram.WebApp.initDataUnsafe.user) {
-        var user = window.Telegram.WebApp.initDataUnsafe.user;
-        var userDataJson = JSON.stringify(user);
+      // Если данные Telegram получены, отправляем их в Unity
+      if (telegramUserData) {
+        var userDataJson = JSON.stringify(telegramUserData);
+        console.log("Отправка данных в Unity:", userDataJson);
         unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", userDataJson);
       } else {
-        console.error("Данные Telegram не обнаружены");
+        console.error("Данные Telegram не найдены – отправка не выполнена");
       }
     }).catch((message) => {
       alert(message);
