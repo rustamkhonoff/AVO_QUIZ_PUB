@@ -6,22 +6,10 @@
   <title>Unity WebGL Player | AVO_QUIZ</title>
   <link rel="shortcut icon" href="TemplateData/favicon.ico">
   <link rel="stylesheet" href="TemplateData/style.css">
-
-  <!-- Telegram Login Widget -->
-  <script async src="https://telegram.org/js/telegram-widget.js?7"
-          data-telegram-login="AvoCyberQuiz_bot"
-          data-size="large"
-          data-userpic="false"
-          data-request-access="write"
-          data-lang="ru"
-          data-callback="onTelegramAuth">
-  </script>
-
   <script>
     // Callback-функция, вызываемая при авторизации через Telegram
     function onTelegramAuth(user) {
       console.log("Пользователь авторизовался через Telegram:", user);
-      // Если Unity-инстанс уже создан, передаём данные в Unity
       if (window.unityInstance) {
         window.unityInstance.SendMessage("Telegram Manager", "ReceiveUserData", JSON.stringify(user));
       } else {
@@ -31,6 +19,18 @@
   </script>
 </head>
 <body>
+<!-- Контейнер для виджета Telegram -->
+<div id="telegram-widget-container" style="text-align: center; margin: 20px 0;">
+  <script async src="https://telegram.org/js/telegram-widget.js?7"
+          data-telegram-login="AvoCyberQuiz_bot"
+          data-size="large"
+          data-userpic="false"
+          data-request-access="write"
+          data-lang="ru"
+          data-callback="onTelegramAuth">
+  </script>
+</div>
+
 <div id="unity-container" class="unity-desktop">
   <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
   <div id="unity-loading-bar">
@@ -46,6 +46,7 @@
     <div id="unity-build-title">AVO_QUIZ</div>
   </div>
 </div>
+
 <script>
   var container = document.querySelector("#unity-container");
   var canvas = document.querySelector("#unity-canvas");
@@ -86,7 +87,6 @@
     showBanner: unityShowBanner,
   };
 
-  // Адаптация для мобильных устройств
   if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
     var meta = document.createElement('meta');
     meta.name = 'viewport';
@@ -107,7 +107,7 @@
     createUnityInstance(canvas, config, function(progress) {
       progressBarFull.style.width = (100 * progress) + "%";
     }).then(function(instance) {
-      window.unityInstance = instance; // Глобальная переменная для доступа в onTelegramAuth
+      window.unityInstance = instance;
       loadingBar.style.display = "none";
       fullscreenButton.onclick = function() {
         instance.SetFullscreen(1);
