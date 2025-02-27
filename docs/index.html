@@ -89,6 +89,7 @@
 
       // Функции для работы с Telegram WebApp
       function sendTelegramUserData(userData) {
+        console.log("Sending user data to Unity:", userData);
         if (typeof unityInstance !== 'undefined') {
           unityInstance.SendMessage('Telegram Manager', 'ReceiveUserData', JSON.stringify(userData));
         } else {
@@ -97,9 +98,12 @@
       }
 
       function fetchTelegramUser() {
+        console.log("Fetching Telegram user data...");
         if (window.Telegram && Telegram.WebApp) {
+          console.log("Telegram WebApp detected.");
           let user = Telegram.WebApp.initDataUnsafe.user;
           if (user) {
+            console.log("Telegram user data found:", user);
             let userData = {
               id: user.id,
               first_name: user.first_name,
@@ -117,6 +121,7 @@
 
       setTimeout(fetchTelegramUser, 1000);
     }).catch((message) => {
+      console.error("Unity instance creation failed:", message);
       alert(message);
     });
   };
